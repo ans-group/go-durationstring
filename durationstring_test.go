@@ -36,6 +36,21 @@ func TestParse_AnyOrder_Parses(t *testing.T) {
 	assert.Equal(t, 0, nanoseconds)
 }
 
+func TestParse_WithWhitespace_Parses(t *testing.T) {
+	years, months, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, err := Parse("1y 2mo	3d\n4h\r5m6s7ms8us9ns\n")
+
+	assert.Nil(t, err)
+	assert.Equal(t, 1, years)
+	assert.Equal(t, 2, months)
+	assert.Equal(t, 3, days)
+	assert.Equal(t, 4, hours)
+	assert.Equal(t, 5, minutes)
+	assert.Equal(t, 6, seconds)
+	assert.Equal(t, 7, milliseconds)
+	assert.Equal(t, 8, microseconds)
+	assert.Equal(t, 9, nanoseconds)
+}
+
 func TestParse_MissingDigit_ReturnsError(t *testing.T) {
 	_, _, _, _, _, _, _, _, _, err := Parse("y42h")
 
