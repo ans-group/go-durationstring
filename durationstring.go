@@ -68,6 +68,9 @@ func Parse(s string) (years, months, days, hours, minutes, seconds, milliseconds
 	isUnit := false
 	flushBuffers()
 	for i, char := range s {
+		if unicode.IsSpace(char) {
+			continue
+		}
 		if unicode.IsDigit(char) {
 			digitBuf.WriteRune(char)
 			isUnit = false
@@ -76,8 +79,8 @@ func Parse(s string) (years, months, days, hours, minutes, seconds, milliseconds
 			isUnit = true
 		}
 
-		// if we're at the last rune in iteration, or looking at a unit and next rune is a digit, flush
-		if len(s)-1 == i || (isUnit && unicode.IsDigit(rune(s[i+1]))) {
+		// if we're at the last rune in iteration, or looking at a unit and next rune is either a digit or whitespace, flush
+		if len(s)-1 == i || (isUnit && (unicode.IsDigit(rune(s[i+1])) || unicode.IsSpace(rune(s[i+1])))) {
 			err := flush()
 			if err != nil {
 				return 0, 0, 0, 0, 0, 0, 0, 0, 0, err
