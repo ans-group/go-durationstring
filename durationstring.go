@@ -8,10 +8,36 @@ import (
 	"unicode"
 )
 
+type Duration struct {
+	Years        int
+	Months       int
+	Days         int
+	Hours        int
+	Minutes      int
+	Seconds      int
+	Milliseconds int
+	Microseconds int
+	Nanoseconds  int
+}
+
+func NewDuration(years, months, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds int) *Duration {
+	return &Duration{
+		Years:        years,
+		Months:       months,
+		Days:         days,
+		Hours:        hours,
+		Minutes:      minutes,
+		Seconds:      seconds,
+		Milliseconds: milliseconds,
+		Microseconds: microseconds,
+		Nanoseconds:  nanoseconds,
+	}
+}
+
 // Parse takes string s and returns the duration in years, months, days, hours, minutes, seconds, nanoseconds, with
 // a non-nil error if there was an error with parsing. Expects s in format ([0-9]+(y|mo|d|h|m|s|ns))+, and accepts any order e.g.
 // 5y4m, 5s4d
-func Parse(s string) (years, months, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds int, err error) {
+func Parse(s string) (d *Duration, err error) {
 	var digitBuf bytes.Buffer
 	var unitBuf bytes.Buffer
 
@@ -19,6 +45,8 @@ func Parse(s string) (years, months, days, hours, minutes, seconds, milliseconds
 		digitBuf = bytes.Buffer{}
 		unitBuf = bytes.Buffer{}
 	}
+
+	d = &Duration{}
 
 	flush := func() error {
 		digit := digitBuf.String()
@@ -39,25 +67,25 @@ func Parse(s string) (years, months, days, hours, minutes, seconds, milliseconds
 
 		switch strings.ToUpper(unit) {
 		case "Y":
-			years = digitInt
+			d.Years = digitInt
 		case "MO":
-			months = digitInt
+			d.Months = digitInt
 		case "D":
-			days = digitInt
+			d.Days = digitInt
 		case "H":
-			hours = digitInt
+			d.Hours = digitInt
 		case "M":
-			minutes = digitInt
+			d.Minutes = digitInt
 		case "S":
-			seconds = digitInt
+			d.Seconds = digitInt
 		case "MS":
-			milliseconds = digitInt
+			d.Milliseconds = digitInt
 		case "US":
 			fallthrough
 		case "µS":
-			microseconds = digitInt
+			d.Microseconds = digitInt
 		case "NS":
-			nanoseconds = digitInt
+			d.Nanoseconds = digitInt
 		default:
 			return fmt.Errorf("invalid unit '%s'", unit)
 		}
@@ -83,17 +111,15 @@ func Parse(s string) (years, months, days, hours, minutes, seconds, milliseconds
 		if len(s)-1 == i || (isUnit && (unicode.IsDigit(rune(s[i+1])) || unicode.IsSpace(rune(s[i+1])))) {
 			err := flush()
 			if err != nil {
-				return 0, 0, 0, 0, 0, 0, 0, 0, 0, err
+				return d, err
 			}
 		}
 	}
 
-	return
+	return d, err
 }
 
-// String takes years, months, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds and
-// returns a formatted string. This function excludes units which are < 1
-func String(years, months, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds int) string {
+func (d *Duration) String() string {
 	buf := bytes.Buffer{}
 
 	add := func(digit int, unit string) {
@@ -104,15 +130,15 @@ func String(years, months, days, hours, minutes, seconds, milliseconds, microsec
 		buf.WriteString(fmt.Sprintf("%d%s", digit, unit))
 	}
 
-	add(years, "y")
-	add(months, "mo")
-	add(days, "d")
-	add(hours, "h")
-	add(minutes, "m")
-	add(seconds, "s")
-	add(milliseconds, "ms")
-	add(microseconds, "µS")
-	add(nanoseconds, "ns")
+	add(d.Years, "y")
+	add(d.Months, "mo")
+	add(d.Days, "d")
+	add(d.Hours, "h")
+	add(d.Minutes, "m")
+	add(d.Seconds, "s")
+	add(d.Milliseconds, "ms")
+	add(d.Microseconds, "µS")
+	add(d.Nanoseconds, "ns")
 
 	return buf.String()
 }
