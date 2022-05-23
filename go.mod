@@ -1,4 +1,4 @@
-module github.com/ukfast/go-durationstring
+module github.com/ans-group/go-durationstring
 
 go 1.12
 
